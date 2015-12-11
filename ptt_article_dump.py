@@ -49,7 +49,7 @@ class PttArticle(object):
         self.aid = aid
 
 # T(topic) a(author) A(AID) d(date) t(time)
-    def save_article(self, output_dir = None, filename_format = 'TaAd'):
+    def save_article(self, output_dir=None, filename_format='TaAd'):
         import os.path
 
         filename = ''
@@ -90,7 +90,7 @@ class PttArticle(object):
             f.write(self.content.encode('utf-8'))
 
 class PttCon(object):
-    def __init__(self, host = None):
+    def __init__(self, host=None):
         self.buf = ''
         self.cur_board = None
         self.screen = pyte.Screen(80, 24)
@@ -112,31 +112,31 @@ class PttCon(object):
             self.tn.write(c)
             time.sleep(0.1)
 
-    def send_arrow_up(self, times = 1):
+    def send_arrow_up(self, times=1):
         while times > 0:
             self.tn.write("\x1bOA")
             time.sleep(0.1)
             times = times - 1
 
-    def send_arrow_down(self, times = 1):
+    def send_arrow_down(self, times=1):
         while times > 0:
             self.tn.write("\x1bOB")
             time.sleep(0.1)
             times = times - 1
 
-    def send_arrow_right(self, times = 1):
+    def send_arrow_right(self, times=1):
         while times > 0:
             self.tn.write("\x1bOC")
             time.sleep(0.1)
             times = times - 1
 
-    def send_arrow_left(self, times = 1):
+    def send_arrow_left(self, times=1):
         while times > 0:
             self.tn.write("\x1bOD")
             time.sleep(0.1)
             times = times - 1
 
-    def send_page_down(self, times = 1, refresh = False):
+    def send_page_down(self, times=1, refresh=False):
         pgdown = "\x1b[6~"
         if refresh:
             pgdown = pgdown + "\x0C"
@@ -153,7 +153,7 @@ class PttCon(object):
         self.tn.write("\x1b[4~")
         time.sleep(0.1)
 
-    def login_to_main_menu(self, login = None, password = None):
+    def login_to_main_menu(self, login=None, password=None):
         import getpass
         self.buf = self.tn.read_until(BIG5_MSG_LOGIN)
         self.tn.write(login + ENTER)
@@ -249,7 +249,7 @@ class PttCon(object):
             self.determine_max_post()
 
 
-    def parse_cursor_article(self, out_when_end = True, get_aid = False):
+    def parse_cursor_article(self):
         meta_off = self.screen.display[self.screen.cursor.y].find('/') - 2
         meta_str = self.screen.display[self.screen.cursor.y][meta_off:]
         meta = meta_str.split(None, 2)
@@ -262,7 +262,7 @@ class PttCon(object):
         time_post = time.strptime(meta[0], "%m/%d")
 
         self.send_arrow_right()
-        self.get_data_and_feed(reset_screen = True, predecode = True)
+        self.get_data_and_feed(reset_screen=True, predecode=True)
 
         # Now we should in an article
         if U_MSG_TIME in self.screen.display[2]:
@@ -284,7 +284,7 @@ class PttCon(object):
 
         status_string = self.screen.display[23]
         while '100%' not in status_string:
-            self.send_page_down(refresh = True)
+            self.send_page_down(refresh=True)
             # erase last line
             self.get_data_and_feed(True, True, BIG5_MSG_ARTICLE_END_SIG)
             status_string = self.screen.display[23]
@@ -312,23 +312,23 @@ class PttCon(object):
         self.get_data_and_feed()
         aid = self.screen.display[POST_AID_LINE].split(None, 3)[2]
         self.write_like_human(ENTER);
-        self.get_data_and_feed(reset_screen = True)
+        self.get_data_and_feed(reset_screen=True)
 
         # create the article instance
         self.cur_article = PttArticle(topic, author, content, time_post, aid)
 
-    def refresh_page(self, predecode = False):
+    def refresh_page(self, predecode=False):
     # TODO: add a last line(display[23]) non-empty detection?
         self.write_like_human('\x0C')
-        self.get_data_and_feed(reset_screen = True, predecode = predecode)
+        self.get_data_and_feed(reset_screen=True, predecode=predecode)
         trial = 0
         while self.screen.display[23].strip() == u'':
             if trial > 2:
                 break
-            self.get_data_and_feed(reset_screen = False, predecode = predecode)
+            self.get_data_and_feed(reset_screen = False, predecode=predecode)
             trial = trial + 1
 
-    def get_data_and_feed(self, reset_screen = False, predecode = False, expect = None):
+    def get_data_and_feed(self, reset_screen=False, predecode=False, expect=None):
         if reset_screen:
             self.screen.reset()
 
@@ -346,7 +346,7 @@ class PttCon(object):
             self.buf_predecode_half_esc()
         self.stream.feed(self.buf)
 
-    def buf_predecode_half_esc(self, keep_esc = False):
+    def buf_predecode_half_esc(self, keep_esc=False):
         while True:
             try:
                 self.buf.decode('big5hkscs')
@@ -374,15 +374,15 @@ if __name__ == '__main__':
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description = "PTT/PTT2 article dump tool.")
-    parser.add_argument('-u', '--login', required = True, help='username')
-    parser.add_argument('-b', '--board', required = True, help='board name')
+    parser = argparse.ArgumentParser(description="PTT/PTT2 article dump tool.")
+    parser.add_argument('-u', '--login', required=True, help='username')
+    parser.add_argument('-b', '--board', required=True, help='board name')
     parser.add_argument('-a', '--search-author', help='search author')
     parser.add_argument('-t', '--search-title', help='search title')
-    parser.add_argument('-r', '--range', dest = 'dump_range', help= 'dump range: \"all\" | start+amount | start-end | single')
+    parser.add_argument('-r', '--range', dest='dump_range', help='dump range: \"all\" | start+amount | start-end | single')
     parser.add_argument('-o', '--output-dir', help='output directory for saving articles')
     parser.add_argument('-f', '--filename-format', default='Tad', help='filename format: [TaAdt]')
-    parser.add_argument('host', default = 'ptt2.cc', help='host name')
+    parser.add_argument('host', default='ptt2.cc', help='host name')
     args = parser.parse_args()
 
     print args
