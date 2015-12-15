@@ -15,6 +15,7 @@ import pyte
 ENTER = '\r'
 
 U_MSG_MAIN_MENU_TITLE = '【主功能表】'.decode('utf-8')
+U_MSG_RIGHT_DBRAC= '》'.decode('utf-8')
 U_MSG_BOARD = '看板《'.decode('utf-8')
 U_MSG_SEARCH_RESULT= '系列《'.decode('utf-8')
 U_MSG_TIME = '時間'.decode('utf-8')
@@ -201,15 +202,12 @@ class PttCon(object):
         self.stream.feed(self.buf)
         self.get_data_and_feed()
 
-#        if BIG5_MSG_ANY_KEY in self.buf:
-#            self.write_like_human(' ')
-#            self.get_data_and_feed(reset_screen = True)
-
-        board_menu_pattern = U_MSG_BOARD + board
-        offset = self.screen.display[0].lower().find(board_menu_pattern.lower())
+        board_menu_pattern = U_MSG_BOARD + board.lower()
+        offset = self.screen.display[0].lower().find(board_menu_pattern)
         if offset != -1:
             self.state = 'board'
-            self.cur_board = self.screen.display[0][offset + 3: offset + 3 + len(board)]
+            end = self.screen.display[0].rfind(U_MSG_RIGHT_DBRAC)
+            self.cur_board = self.screen.display[0][offset + 3 : end]
 
 #        self.pinned_posts = 0
         self.determine_max_post()
