@@ -188,7 +188,8 @@ class PttCon(object):
             self.state = 'main_menu'
 
     def go_board(self, board):
-        assert self.state in ['main_menu', 'board'], 'go_board must be used in main_menu state'
+        assert self.state in ['main_menu', 'board'], \
+               'go_board must be used in main_menu state'
 
         self.write_like_human('s' + board + ENTER)
         self.buf = self.tn.read_until(BIG5_MSG_BOARD, 0.5)
@@ -231,7 +232,8 @@ class PttCon(object):
         self.max_post = int(post_num)
 
     def board_search_post(self, field, pattern):
-        assert self.state in ['board', 'search'] and field in ['author', 'title']
+        assert self.state in ['board', 'search'] and \
+               field in ['author', 'title']
         if field == 'author':
             search_string = 'a'
         else:
@@ -263,9 +265,11 @@ class PttCon(object):
         self.get_data_and_feed(reset_screen=True, predecode=True)
 
         # Now we should in an article
+        # Parse post time passively and ignore any exception
         if U_MSG_TIME in self.screen.display[2]:
             try:
-                time_post = time.strptime(self.screen.display[2].split(None, 1)[1].strip())
+                time_str = self.screen.display[2].split(None, 1)[1].strip()
+                time_post = time.strptime(time_str)
             except:
                 pass
 
@@ -275,9 +279,9 @@ class PttCon(object):
         for i in range(23):
             content = content + self.screen.display[i].rstrip() + '\n'
 
-        # That bottom line shown could be assumed to be line 22 here because for
-        # multi-page articles the last line is definitely line 22 and no need
-        # to do any string search
+        # That bottom line shown could be assumed to be line 22 here because
+        # for  multi-page articles the last line is definitely line 22 and no
+        # need to do any string search
         bot_line = 22
 
         status_string = self.screen.display[23]
@@ -296,7 +300,9 @@ class PttCon(object):
                 self.get_data_and_feed(True, True, BIG5_MSG_ARTICLE_END_SIG)
                 status_string = self.screen.display[23]
 
-            bot_line = int(status_string[status_string.find(u"~") + 1:status_string.find(U_MSG_LINE)])
+            bot_line_start = status_string.find(u"~") + 1
+            bot_line_end = status_string.find(U_MSG_LINE)
+            bot_line = int(status_string[bot_line_start : bot_line_end])
             content_start = 23 - (bot_line - bot_line_prev)
 
             for i in range(content_start, 23):
@@ -330,7 +336,8 @@ class PttCon(object):
             self.get_data_and_feed(reset_screen = False, predecode=predecode)
             trial = trial + 1
 
-    def get_data_and_feed(self, reset_screen=False, predecode=False, expect=None):
+    def get_data_and_feed(self, reset_screen=False,
+                          predecode=False, expect=None):
         if reset_screen:
             self.screen.reset()
 
@@ -360,10 +367,10 @@ class PttCon(object):
                 if c == -1:
                     break
 
-                recovered_char = self.buf[ue.start] + self.buf[ue.start + c + 1]
+                merged_char = self.buf[ue.start] + self.buf[ue.start + c + 1]
                 esc_seq_str = self.buf[ue.end - 1:ue.start + c + 1]
                 rest_str = self.buf[ue.start + c + 2:]
-                self.buf = self.buf[:ue.start] + recovered_char
+                self.buf = self.buf[:ue.start] + merged_char
                 if keep_esc:
                     self.buf = self.buf + esc_seq_str
                 self.buf = self.buf + rest_str
@@ -421,7 +428,9 @@ if __name__ == '__main__':
     if args.search_title is not None:
         ptt.board_search_post('title', args.search_title)
 
-    print "Board " + ptt.cur_board + ": total " + str(ptt.max_post) + " articles in scope"
+    print "Board %s: total %d articles in scope " % \
+           (ptt.cur_board, ptt.max_post)
+
     if dump_range ==  'all':
         dump_range = range(1, ptt.max_post + 1)
 
@@ -433,6 +442,7 @@ if __name__ == '__main__':
         print "Dump from %d to %d." % (dump_range[0], dump_range[-1])
         last_dump = -1
         cnt = 0
+        dumps = len(dump_range)
         for i in dump_range:
             if i > ptt.max_post:
                 print str(i) + "out of range"
@@ -457,7 +467,8 @@ if __name__ == '__main__':
             ptt.cur_article.save_article(args.output_dir)
             last_dump = i
             cnt = cnt + 1
-            sys.stdout.write("\rDumping articles: %3d%% (%d/%d)" % (cnt * 100 /len(dump_range), cnt, len(dump_range)))
+            sys.stdout.write("\rDumping articles: %3d%% (%d/%d)" %
+                             (cnt * 100 /dumps, cnt, dumps))
             sys.stdout.flush()
 
         print ", done.\n"
