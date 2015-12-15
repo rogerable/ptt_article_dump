@@ -22,7 +22,6 @@ U_MSG_TIME = '時間'.decode('utf-8')
 U_MSG_LINE = '行'.decode('utf-8')
 U_MSG_DELETED = '本文已被刪除'.decode('utf-8')
 U_MSG_NAME_SUB_WARN = '▲此頁內容會依閱讀者不同,原文未必有您的資料'.decode('utf-8')
-U_MSG_AID = '文章代碼(AID): #'.decode('utf-8')
 
 BIG5_MSG_ANY_KEY = '請按任意鍵繼續'.decode('utf-8').encode('big5')
 BIG5_MSG_LOGIN = '請輸入代號，或以 guest 參觀，或以 new 註冊:'.decode('utf-8').encode('big5')
@@ -32,10 +31,11 @@ BIG5_MSG_WRONG_PASS = '密碼不對喔'.decode('utf-8').encode('big5')
 BIG5_MSG_MULTILOGIN = '您想刪除其他重複登入的連線嗎？[Y/n]'.decode('utf-8').encode('big5')
 BIG5_MSG_MAIN_MENU_TITLE = U_MSG_MAIN_MENU_TITLE.encode('big5')
 BIG5_MSG_ARTICLE_END_SIG = '(←)\x1b[30m離開'.decode('utf-8').encode('big5')
+BIG5_MSG_AID = '文章代碼(AID):'.decode('utf-8').encode('big5')
 BIG5_MSG_BOARD = U_MSG_BOARD.encode('big5')
 
 POST_LIST_ENTRY_META_START = 10
-POST_AID_LINE = 19
+AID_LEN = 9
 
 LOGIN_TIMEOUT = 10
 
@@ -306,9 +306,13 @@ class PttCon(object):
         content = content.rstrip('\n')
 
         # get aid and out
+        # ptt and ptt2 display aid in different lines. Searching in buf would
+        # be a lot easier.
         self.write_like_human('Q');
         self.get_data_and_feed()
-        aid = self.screen.display[POST_AID_LINE].split(None, 3)[2]
+        aid_off = self.buf.find(BIG5_MSG_AID)
+        aid_off = self.buf.find('#', aid_off)
+        aid = self.buf[aid_off : aid_off + AID_LEN]
         self.write_like_human(ENTER);
         self.get_data_and_feed(reset_screen=True)
 
