@@ -29,6 +29,7 @@ BIG5_MSG_LOGIN = '請輸入代號，或以 guest 參觀，或以 new 註冊:'.de
 BIG5_MSG_PASS = '請輸入您的密碼:'.decode('utf-8').encode('big5')
 BIG5_MSG_WRONG_PASS = '密碼不對喔'.decode('utf-8').encode('big5')
 BIG5_MSG_MULTILOGIN = '您想刪除其他重複登入的連線嗎？[Y/n]'.decode('utf-8').encode('big5')
+BIG5_MSG_FAIL_LOG = '您要刪除以上錯誤嘗試的記錄嗎? [Y/n]'.decode('utf-8').encode('big5')
 BIG5_MSG_MAIN_MENU_TITLE = U_MSG_MAIN_MENU_TITLE.encode('big5')
 BIG5_MSG_ARTICLE_END_SIG = '(←)\x1b[30m離開'.decode('utf-8').encode('big5')
 BIG5_MSG_AID = '文章代碼(AID):'.decode('utf-8').encode('big5')
@@ -175,6 +176,9 @@ class PttCon(object):
                 raise EOFError("Wrong password")
 
             if BIG5_MSG_MULTILOGIN in self.buf:
+                self.tn.write('n' + ENTER)
+
+            if BIG5_MSG_FAIL_LOG in self.buf:
                 self.tn.write('n' + ENTER)
 
             if BIG5_MSG_ANY_KEY in self.buf:
