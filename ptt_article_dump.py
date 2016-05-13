@@ -398,7 +398,6 @@ if __name__ == '__main__':
     parser.add_argument('host', default='ptt2.cc', help='host name')
     args = parser.parse_args()
 
-    print args
     if args.dump_range is None:
         dump_range = 'last'
     else:
