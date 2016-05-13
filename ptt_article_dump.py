@@ -389,6 +389,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="PTT/PTT2 article dump tool.")
     parser.add_argument('-u', '--login', required=True, help='username')
+    parser.add_argument('-p', '--password', help='password(not encouraged)')
     parser.add_argument('-b', '--board', required=True, help='board name')
     parser.add_argument('-a', '--search-author', help='search author')
     parser.add_argument('-t', '--search-title', help='search title')
@@ -421,7 +422,7 @@ if __name__ == '__main__':
             raise SyntaxError("Wrong range")
 
     ptt = PttCon(args.host)
-    ptt.login_to_main_menu(args.login)
+    ptt.login_to_main_menu(args.login, args.password)
     ptt.go_board(args.board)
 
     # range: all | #start + #amount | #start - #end | #single
